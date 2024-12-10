@@ -31,3 +31,5 @@ line needs surface, color, starting point, ending point and thickness
 here we need a tuple with top-left x, top left y, height, width)
 
 the strating of xy axis is top left of the display area
+
+### blitting images

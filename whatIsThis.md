@@ -33,3 +33,31 @@ here we need a tuple with top-left x, top left y, height, width)
 the strating of xy axis is top left of the display area
 
 ### blitting images
+blitting in pygame means copying the images to the surface
+its done by 
+- loading the image
+`dragon_left_image = pygame.image.load("dragon_left.png")`
+- getting the rect size of the image
+`dragon_left_rect = dragon_left_image.get_rect()`
+- setting the position for the image (on the main display)
+`dragon_left_rect.topleft = (0,0)`
+- calling the blit method, inside the program loop
+`display_surface.blit(dragon_left_image, dragon_left_rect)`
+- updating the surface with 
+`pygame.display.update()`
+
+### checking available fonts in the system
+``` 
+fonts = pygame.font.get_fonts()
+for font in fonts:
+    print(font)
+```
+
+loading custom font:  
+`custom_font = pygame.font.Font('AttackGraffiti.tff' 32)`
+in above example the font is available in the project directory, file extension is mandatory
+
+### intiger division
+`WINDOW_WIDTH//2` this kind of division returns always intiger as result
+
+### moving the object on surface - look into examples - section 2 -> 6_discrete_movement

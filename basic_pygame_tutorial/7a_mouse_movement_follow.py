@@ -22,7 +22,7 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-
+        # this time only move the image if left button pressed and mouse moved
         if (event.type == pygame.MOUSEMOTION) and  (event.buttons[0] == 1):
             dragon_image_rect.centerx = event.pos[0]
             dragon_image_rect.centery = event.pos[1]

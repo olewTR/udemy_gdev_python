@@ -5,3 +5,9 @@ basic_pygame_tutorial/dragon_right.png
 basic_pygame_tutorial/sound_1.wav
 basic_pygame_tutorial/sound_2.wav
 basic_pygame_tutorial/coin.png
+feed_the_dragon/coin_sound.wav
+feed_the_dragon/miss_sound.wav
+feed_the_dragon/ftd_background_music.wav
+feed_the_dragon/dragon_right.png
+feed_the_dragon/coin.png
+feed_the_dragon/AttackGraffiti.ttf

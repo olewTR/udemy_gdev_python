@@ -80,8 +80,6 @@ while running:
                 snake_dx = 0
                 snake_dy = SNAKE_SIZE
     
-       
-       
     body_coords.insert(0, head_coord)
     body_coords.pop()
     
@@ -89,6 +87,19 @@ while running:
     head_x += snake_dx
     head_y += snake_dy
     head_coord = (head_x, head_y, SNAKE_SIZE, SNAKE_SIZE)
+
+    # check for game over condition
+    if head_rect.left < 0 or head_rect.right > WINDOW_WIDTH or head_rect.top < 0 or head_rect.bottom > WINDOW_HEIGHT:
+        display_surface.blit(game_over_text, game_over_rect)
+        display_surface.blit(continue_text, continue_rect)
+        pygame.display.update()
+
+        is_paused = True
+        while is_paused:
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    is_paused = False
+
 
     # check for collisions
     if head_rect.colliderect(apple_rect):

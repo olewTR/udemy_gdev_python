@@ -102,7 +102,7 @@ while running:
                     score = 0
                     head_x = WINDOW_WIDTH //2 
                     head_y = WINDOW_HEIGHT //2 + 100
-                    head_coord(head_x, head_y, SNAKE_SIZE, SNAKE_SIZE)
+                    head_coord = (head_x, head_y, SNAKE_SIZE, SNAKE_SIZE)
 
                     body_coords = []
                     snake_dx = 0

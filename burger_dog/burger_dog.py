@@ -19,7 +19,7 @@ BUFFER_DISTANCE = 100
 
 score = 0
 burger_points = 0
-burger_eaten = 0
+burgers_eaten = 0
 
 player_lives = PLAYER_STARTING_LIVES
 player_velocity = PLAYER_NORMAL_VELOCITY
@@ -48,7 +48,7 @@ title_rect = title_text.get_rect()
 title_rect.centerx = WINDOW_WIDTH //2
 title_rect.y = 10
 
-eaten_text = font.render('Eaten Burgers: ' + str(burger_eaten), True, ORANGE)
+eaten_text = font.render('Eaten Burgers: ' + str(burgers_eaten), True, ORANGE)
 eaten_rect = eaten_text.get_rect()
 eaten_rect.centerx = WINDOW_WIDTH//2
 eaten_rect.y = 50
@@ -67,7 +67,7 @@ game_over_rect.center = (WINDOW_WIDTH//2, WINDOW_HEIGHT//2)
 
 continue_text = font.render('Press any key to continue...', True, ORANGE)
 continue_rect = continue_text.get_rect()
-continue_rect.center = (WINDOW_WIDTH//2, WINDOW_HEIGHT// + 64)
+continue_rect.center = (WINDOW_WIDTH//2, WINDOW_HEIGHT//2 + 64)
 
 # set sounds and music
 bark_sound = pygame.mixer.Sound('./burger_dog_assets/bark_sound.wav')
@@ -90,7 +90,7 @@ burger_rect.topleft = (random.randint(0, WINDOW_WIDTH -32 ), -BUFFER_DISTANCE) #
 
 # game loop
 running = True
-# pygame.mixer_music.play()
+pygame.mixer_music.play(-1,0,0)
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -112,8 +112,9 @@ while running:
     # engage boost if available
     if keys[pygame.K_SPACE] and boost_level > 0:
         player_velocity = PLAYER_BOOST_VELOCITY
-        boost_level -=1
-        boost_text = font.render('Boost: ' + str(boost_level), True, ORANGE)
+        boost_level -= 1
+        
+
     else:
         player_velocity = PLAYER_NORMAL_VELOCITY
 
@@ -139,19 +140,54 @@ while running:
     # player caught the burger
     if player_image_rect.colliderect(burger_rect):
         score += burger_points
-        burger_eaten += 1
+        burgers_eaten += 1
         bark_sound.play()
+
+        burger_rect.topleft = (random.randint(0, WINDOW_WIDTH -32 ), -BUFFER_DISTANCE)
         burger_velocity += BURGER_ACCELERATION
+        
         boost_level += 25
         if boost_level > STARTING_BOOST_LEVEL:
             boost_level = STARTING_BOOST_LEVEL
 
-        # reposition burger
-        burger_rect.topleft = (random.randint(0, WINDOW_WIDTH -32 ), -BUFFER_DISTANCE)
+    # update the hud
+    points_text = font.render('Burger Points: ' + str(burger_points), True, ORANGE)
+    score_text = font.render('Score: ' + str(score), True, ORANGE)
+    eaten_text = font.render('Burgers Eaten: ' + str(burgers_eaten), True, ORANGE)
+    lives_text = font.render('Lives: ' + str(player_lives), True, ORANGE)
+    boost_text = font.render('Boost: ' + str(boost_level), True, ORANGE)
+
+    # check if game over 
+    if player_lives == 0:
+        game_over_text = font.render('FINAL SCORE: ' + str(score), True, ORANGE)
+        display_surface.blit(game_over_text, game_over_rect)
+        display_surface.blit(continue_text, continue_rect)
+        pygame.display.update()
+
+        # pause until key pressed
+        pygame.mixer.stop()
+        is_paused = True
+        while is_paused:
+            for event in pygame.event.get():
+                # play again
+                if event.type == pygame.KEYDOWN:
+                    score = 0
+                    burgers_eaten = 0
+                    player_lives = PLAYER_STARTING_LIVES
+                    boost_level = STARTING_BOOST_LEVEL
+                    burger_velocity = STARTING_BURGER_VELOCITY
+                    pygame.mixer.music.play(-1,0,0)
+                    is_paused = False
+                if event.type == pygame.QUIT:
+                    is_paused = False
+                    running = False
 
 
+
+    # fill the surface black
     display_surface.fill(BLACK)
 
+    # blit the hud
     display_surface.blit(points_text, points_rect)
     display_surface.blit(score_text, score_rect)
     display_surface.blit(title_text, title_rect)

@@ -15,12 +15,13 @@ pygame.display.set_caption('Sprite groups')
 # define classes 
 class Player(pygame.sprite.Sprite):
     """ a class to represent the Player object """
-    def __init__(self, x, y):
+    def __init__(self, x, y, monster_group):
         super().__init__()
         self.image = pygame.image.load('./assets/knight.png')
         self.rect = self.image.get_rect()
         self.rect.topleft = (x, y)
         self.velocity = 5
+        self.monster_group = monster_group
     def update(self):
         """ update the move of player object """
         self.move()
@@ -37,15 +38,9 @@ class Player(pygame.sprite.Sprite):
         if keys[pygame.K_DOWN]:
             self.rect.y += self.velocity
     def collisions(self):
-        """check for collisions between sprite groups"""
-
-
-
-player_group = pygame.sprite.Group()
-player = Player(500, 500)
-player_group.add(player)
-
-
+        """check for collisions between sprite groups Player and Monster"""
+        if pygame.sprite.spritecollide(self, self.monster_group, True):
+            print(len(self.monster_group))
 
 class Monster(pygame.sprite.Sprite):
     """ a class to represent monster asset """
@@ -60,11 +55,15 @@ class Monster(pygame.sprite.Sprite):
         self.rect.y += self.velocity
 
 # create a sprite group to hold 10 monsters
-monster_group = pygame.sprite.Group()
+my_monster_group = pygame.sprite.Group()
 for i in range(10):
     monster = Monster(i*64, 10)
-    monster_group.add(monster)
+    my_monster_group.add(monster)
 
+# create a player group
+player_group = pygame.sprite.Group()
+player = Player(500, 500, my_monster_group)
+player_group.add(player)
 
 # game loop
 running = True
@@ -77,15 +76,13 @@ while running:
     display_surface.fill(BLACK)
 
     # blit the assets - or draw them all rather
-    monster_group.update()
-    monster_group.draw(display_surface)
+    my_monster_group.update()
+    my_monster_group.draw(display_surface)
 
     player_group.update()
     player_group.draw(display_surface)
 
-
     pygame.display.update()
     clock.tick(FPS)
-
 
 pygame.quit()

@@ -78,7 +78,11 @@ class Player(pygame.sprite.Sprite):
             self.rect.x += self.velocity
 
     def fire(self):
-        pass
+        # restrict number of active bullets
+        if len(self.bullet_group) < 2:
+            self.shoot_sound.play()
+            PlayerBullet(self.rect.centerx, self.rect.top, self.bullet_group)
+
 
     def reset(self):
         """ reset the player position on screen"""
@@ -99,11 +103,22 @@ class Alien(pygame.sprite.Sprite):
         pass
 
 class PlayerBullet(pygame.sprite.Sprite):
-    def __init__(self):
+    def __init__(self, x, y, bullet_group):
         super().__init__()
+        self.image = pygame.image.load('./assets/green_laser.png')
+        self.rect = self.image.get_rect()
+        self.rect.centerx = x
+        self.rect.centery = y
+
+        self.velocity = 10
+        bullet_group.add(self)
 
     def update(self):
-        pass
+        self.rect.y -= self.velocity
+
+        # when off the screen - remove the bullet from gruoup
+        if self.rect.bottom < 0:
+            self.kill()
 
 class AlienBullet(pygame.sprite.Sprite):
     def __init__(self):
@@ -138,6 +153,11 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        # fire
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                my_player.fire()
+        
 
     # update the display 
     display_surface.fill(BLACK)

@@ -89,18 +89,35 @@ class Player(pygame.sprite.Sprite):
         self.rect.center = WINDOW_WIDTH//2
 
 class Alien(pygame.sprite.Sprite):
-    def __init__(self):
+    def __init__(self, x, y, velocity, bullet_group):
         super().__init__()
-        pass
+        self.image = pygame.image.load('./assets/alien.png')
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (x, y)
+
+        self.starting_x = x
+        self.starting_y = y
+
+        self.direction = 1
+        self.velocity = velocity
+        self.bullet_group = bullet_group
+
+        self.shoot_sound = pygame.mixer.Sound('./assets/alien_fire.wav')
 
     def update(self):
-        pass
+        self.rect.x += self.direction * self.velocity
+
+        # let alien shoot randomly 
+        if random.randint(0,1000) > 999 and len(self.bullet_group) < 3:
+            self.shoot_sound.play()
+            self.fire()
 
     def fire(self):
         pass
 
     def reset(self):
-        pass
+        self.rect.topleft = (self.starting_x, self.starting_y)
+        self.direction = 1
 
 class PlayerBullet(pygame.sprite.Sprite):
     def __init__(self, x, y, bullet_group):

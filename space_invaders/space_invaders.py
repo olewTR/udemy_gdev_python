@@ -21,7 +21,7 @@ class Game():
     """a class to control the display and gameplay"""
     def __init__(self, player, alien_group, player_bullet_group, alien_bullet_group):
         # set game values
-        self.round_number = 10 
+        self.round_number = 1 
         self.score = 0
 
         self.player = player
@@ -100,10 +100,24 @@ class Game():
 
     def check_collisions(self):
         """check collisions between player, alien and shots"""
-        pass
+        # see if any bullet hit an alien
+        if pygame.sprite.groupcollide(self.player_bullet_group, self.alien_group, True, True):
+            self.alien_hit_sound.play()
+            self.score += 100
+
+        # see if the player was hit
+        if pygame.sprite.spritecollide(self.player, self.alien_bullet_group, True):
+            self.player_hit_sound.play()
+            self.player.lives -= 1
+            self.check_game_status('Alien hit you !', 'press enter to contine')
 
     def check_round_completion(self):
-        pass
+        # if no more aliens to kill
+        if not (self.alien_group):
+            self.score += 1000 * self.round_number
+            self.round_number += 1
+
+            self.start_new_round()
     
     def start_new_round(self):
         """ starts new round"""
@@ -115,7 +129,7 @@ class Game():
         
         # pause the game and prompt user to start
         self.new_round_sound.play()
-        self.pause_game('Space invaders round one', 'press enter to start')
+        self.pause_game('Space invaders round ' + str(self.round_number), 'press enter to start')
 
     def check_game_status(self, main_text, sub_text):
         """ is player dead etc"""
@@ -167,7 +181,20 @@ class Game():
                     running = False
 
     def reset_game(self):
-        pass
+        self.pause_game("Final score : " + str(self.score), ' Press enter to play again')
+
+        # reset the game values
+        self.score = 0 
+        self.round_number = 1
+        self.player.lives = 5
+        
+        # empty sprite groups
+        self.alien_group.empty()
+        self.alien_bullet_group.empty()
+        self.player_bullet_group.empty()
+
+        # start a new game
+        self.start_new_round()
 
 class Player(pygame.sprite.Sprite):
     """a class to hold the spaceship object"""
@@ -260,7 +287,7 @@ class AlienBullet(pygame.sprite.Sprite):
         self.rect.centerx = x 
         self.rect.centery = y
         
-        self.velocity = 10
+        self.velocity = 5
         bullet_group.add(self)
 
     def update(self):

@@ -21,7 +21,7 @@ class Game():
     """a class to control the display and gameplay"""
     def __init__(self, player, alien_group, player_bullet_group, alien_bullet_group):
         # set game values
-        self.round_number = 1 
+        self.round_number = 10 
         self.score = 0
 
         self.player = player
@@ -96,9 +96,7 @@ class Game():
             if breach:
                 self.breach_sound.play()
                 self.player.lives -= 1
-                self.check_game_status()
-
-
+                self.check_game_status('Aliens breached the line', 'press enter to continue')
 
     def check_collisions(self):
         """check collisions between player, alien and shots"""
@@ -117,13 +115,56 @@ class Game():
         
         # pause the game and prompt user to start
         self.new_round_sound.play()
-        self.pause_game()
+        self.pause_game('Space invaders round one', 'press enter to start')
 
-    def check_game_status(self):
+    def check_game_status(self, main_text, sub_text):
         """ is player dead etc"""
+        # new round or game over?
 
-    def pause_game(self):
-        pass
+        # empty the bullet groups and reset player and aliens
+        self.alien_bullet_group.empty()
+        self.player_bullet_group.empty()
+        self.player.reset()
+        for alien in self.alien_group:
+            alien.reset()
+
+        if self.player.lives <= 0:
+            self.reset_game()
+        else:
+            self.pause_game(main_text, sub_text)
+
+    def pause_game(self, main_text, sub_text):
+        global running
+        WHITE = (255, 255, 255)
+        BLACK = (0,0,0)
+
+        # create main pause text
+        main_text = self.font.render(main_text, True, WHITE)
+        main_rect = main_text.get_rect()
+        main_rect.center = (WINDOW_WIDTH //2, WINDOW_HEIGHT //2)
+
+        # sub text
+        sub_text = self.font.render(sub_text, True, WHITE)
+        sub_rect = sub_text.get_rect()
+        sub_rect.center = (WINDOW_WIDTH//2, WINDOW_HEIGHT //2 + 64)
+
+        # blit the texts
+        display_surface.fill(BLACK)
+        display_surface.blit(main_text, main_rect)
+        display_surface.blit(sub_text, sub_rect)
+        pygame.display.update()
+
+        # pause the game until ENTER hit
+        is_paused = True
+        while is_paused:
+            for event in pygame.event.get():
+                # the user wants to play again
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_RETURN:
+                        is_paused = False
+                if event.type == pygame.QUIT:
+                    is_paused = False
+                    running = False
 
     def reset_game(self):
         pass
@@ -157,10 +198,10 @@ class Player(pygame.sprite.Sprite):
             self.shoot_sound.play()
             PlayerBullet(self.rect.centerx, self.rect.top, self.bullet_group)
 
-
     def reset(self):
         """ reset the player position on screen"""
-        self.rect.center = WINDOW_WIDTH//2
+        self.rect.centerx = WINDOW_WIDTH//2
+        self.rect.bottom = WINDOW_HEIGHT
 
 class Alien(pygame.sprite.Sprite):
     def __init__(self, x, y, velocity, bullet_group):

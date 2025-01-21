@@ -19,20 +19,86 @@ clock = pygame.time.Clock()
 
 class Game():
     """a class to control the display and gameplay"""
-    def __init__(self):
-        pass
+    def __init__(self, player, alien_group, player_bullet_group, alien_bullet_group):
+        # set game values
+        self.round_number = 1 
+        self.score = 0
+
+        self.player = player
+        self.alien_group = alien_group
+        self.player_bullet_group = player_bullet_group
+        self.alien_bullet_group = alien_bullet_group
+
+        # set sounds and music
+
+        self.new_round_sound = pygame.mixer.Sound('./assets/new_round.wav')
+        self.breach_sound = pygame.mixer.Sound('./assets/breach.wav')
+        self.alien_hit_sound = pygame.mixer.Sound('./assets/alien_hit.wav')
+        self.player_hit_sound = pygame.mixer.Sound('./assets/player_hit.wav')
+
+        self.font = pygame.font.Font('./assets/Facon.ttf', 32)
 
     def update(self):
-        pass
+        self.shift_aliens()
+        self.check_collisions()
+        self.check_round_completion()
     
     def draw(self):
         """ draw the HUD and other elements to the display"""
-        pass
+        WHITE = (255, 255, 255)
+
+        score_text = self.font.render('Score : ' + str(self.score), True, WHITE)
+        score_rect = score_text.get_rect()
+        score_rect.centerx = WINDOW_WIDTH //2 
+        score_rect.top = 10
+
+        round_text = self.font.render("Round : " + str(self.round_number), True, WHITE)
+        round_rect = round_text.get_rect()
+        round_rect.topleft = (20, 10)
+
+        lives_text = self.font.render("Lives : " + str(self.player.lives), True, WHITE)
+        lives_rect = lives_text.get_rect()
+        lives_rect.topright = (WINDOW_WIDTH -20, 10)
+
+        # blit the HUD
+        display_surface.blit(score_text, score_rect)
+        display_surface.blit(round_text, round_rect)
+        display_surface.blit(lives_text, lives_rect)
+
+        pygame.draw.line(display_surface, WHITE, (0, 50), (WINDOW_WIDTH, 50), 4)
+        pygame.draw.line(display_surface, WHITE, (0, WINDOW_HEIGHT-100), (WINDOW_WIDTH, WINDOW_HEIGHT -100), 4)
     
     def shift_aliens(self):
         """method to move the aliens, horizontally, then when 
         edge is reached - one row down"""
-        pass
+        shift = False
+        for alien in (self.alien_group.sprites()):
+            if alien.rect.left <= 0 or alien.rect.right >= WINDOW_WIDTH:
+                shift = True
+
+        # Shift every alien down, change direction check for a breach
+        if shift:
+            breach = False
+            for alien in (self.alien_group.sprites()):
+                # shift down
+                alien.rect.y += 10* self.round_number
+
+                # reverse direction and move alien off the edge 
+                # so shift doesn't trigger
+
+                alien.direction = -1*alien.direction
+                alien.rect.x += alien.direction*alien.velocity
+
+                # check if breach
+                if alien.rect.bottom >= WINDOW_HEIGHT -100:
+                    breach = True
+
+            if breach:
+                self.breach_sound.play()
+                self.player.lives -= 1
+                self.check_game_status()
+
+
 
     def check_collisions(self):
         """check collisions between player, alien and shots"""
@@ -43,7 +109,15 @@ class Game():
     
     def start_new_round(self):
         """ starts new round"""
-        pass
+        # create the grid of aliens 11 / 5
+        for i in range(11):
+            for j in range(5):
+                alien = Alien(64 +i * 64, 64 + j * 64, self.round_number, self.alien_bullet_group)
+                self.alien_group.add(alien)
+        
+        # pause the game and prompt user to start
+        self.new_round_sound.play()
+        self.pause_game()
 
     def check_game_status(self):
         """ is player dead etc"""
@@ -105,7 +179,7 @@ class Alien(pygame.sprite.Sprite):
         self.shoot_sound = pygame.mixer.Sound('./assets/alien_fire.wav')
 
     def update(self):
-        self.rect.x += self.direction * self.velocity
+        self.rect.x += (self.direction * self.velocity)
 
         # let alien shoot randomly 
         if random.randint(0,1000) > 999 and len(self.bullet_group) < 3:
@@ -113,7 +187,7 @@ class Alien(pygame.sprite.Sprite):
             self.fire()
 
     def fire(self):
-        pass
+        AlienBullet(self.rect.centerx, self.rect.bottom, self.bullet_group)
 
     def reset(self):
         self.rect.topleft = (self.starting_x, self.starting_y)
@@ -138,14 +212,25 @@ class PlayerBullet(pygame.sprite.Sprite):
             self.kill()
 
 class AlienBullet(pygame.sprite.Sprite):
-    def __init__(self):
+    def __init__(self, x, y, bullet_group):
         super().__init__()
+        self.image = pygame.image.load('./assets/red_laser.png')
+        self.rect = self.image.get_rect()
+        self.rect.centerx = x 
+        self.rect.centery = y
+        
+        self.velocity = 10
+        bullet_group.add(self)
 
     def update(self):
-        pass
+        """ update the bullet"""        
+        self.rect.y += self.velocity
+
+        # if the bullet leaves the screen - kill it
+        if self.rect.top > WINDOW_HEIGHT:
+            self.kill()
 
 # creating bullet groups
-
 my_player_bullet_group = pygame.sprite.Group()
 my_alien_bullet_group = pygame.sprite.Group()
 
@@ -157,12 +242,11 @@ player_group.add(my_player)
 # create an alien group - alien object will be added in the 
 # game class / new round method
 
-alien_group = pygame.sprite.Group()
+my_alien_group = pygame.sprite.Group()
 
 # create the game object
-my_game = Game()
-
-
+my_game = Game(my_player, my_alien_group, my_player_bullet_group, my_alien_bullet_group)
+my_game.start_new_round()
 
 # main game loop
 running = True
@@ -174,15 +258,15 @@ while running:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
                 my_player.fire()
-        
 
     # update the display 
     display_surface.fill(BLACK)
+
     player_group.update()
     player_group.draw(display_surface)
 
-    alien_group.update()
-    alien_group.draw(display_surface)
+    my_alien_group.update()
+    my_alien_group.draw(display_surface)
 
     my_player_bullet_group.update()
     my_player_bullet_group.draw(display_surface)

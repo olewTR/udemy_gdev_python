@@ -12,6 +12,30 @@ pygame.display.set_caption('Making a tile map')
 clock = pygame.time.Clock()
 FPS = 60
 
+# define classes
+class Tile(pygame.sprite.Sprite):
+    """ a class to read and create individual tiles """
+    def __init__(self, x, y, image_int,main_group, sub_group=""):
+        super().__init__()
+        # load images and put them to proper groups
+        if image_int == 1:
+            self.image = pygame.image.load('./assets/dirt.png')
+        elif image_int == 2:
+            self.image = pygame.image.load('./assets/grass.png')
+            sub_group.add(self)
+        elif image_int == 3:
+            self.image = pygame.image.load('./assets/water.png')
+
+        # all tiles should go to the main group
+        main_group.add(self)
+
+
+# create sprite groups
+main_tile_group = pygame.sprite.Group()
+gras_tile_group = pygame.sprite.Group()
+water_tile_group = pygame.sprite.Group()
+
+
 # here create the tile map - nested list?
 # 20 rows x 30 columns 
 # 0 -> no tile, 1 -> dirt, 2-> grass, 3-> water

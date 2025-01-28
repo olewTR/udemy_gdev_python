@@ -44,9 +44,34 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.bottomleft = ((x,y))
 
+        # kinematic vectors - first value => x second value => y
+        self.position = vector(x,y)
+        self.velocity = vector(0,0)
+        self.acceleration = vector(0,0)
+
+        # some kinemtatic constants to make moving better
+        self.HORIZONTAL_ACCELERATION = 2
+        self.HORIZONTAL_FRICTION = 0.15
+
     def update(self):
         """method to update the player object"""
 
+        # if no force is applied (key presses, acceleration should be 0
+        self.acceleration = vector(0,0)
+
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_LEFT]:
+            self.acceleration.x = -1 * self.HORIZONTAL_ACCELERATION
+        if keys[pygame.K_RIGHT]:
+            self.acceleration.x = self.HORIZONTAL_ACCELERATION
+        
+        # calculate new kinematics values
+        self.acceleration -= self.velocity * self.HORIZONTAL_FRICTION
+        self.velocity += self.acceleration
+        self.position += self.velocity + 0.5* self.acceleration # this is from some kinematic stuff
+
+        # update new rect with above data
+        self.rect.bottomleft = self.position
 
 # create sprite groups
 main_tile_group = pygame.sprite.Group()

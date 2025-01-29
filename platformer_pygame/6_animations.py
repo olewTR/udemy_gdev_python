@@ -46,7 +46,8 @@ class Player(pygame.sprite.Sprite):
         self.move_right_sprites = []
         self.idle_left_sprites = []
         self.idle_right_sprites = []
-        
+
+        # animate move right        
         self.move_right_sprites.append(pygame.transform.scale(pygame.image.load("./assets/boy/Run (1).png"),(64,64)))
         self.move_right_sprites.append(pygame.transform.scale(pygame.image.load("./assets/boy/Run (2).png"),(64,64)))
         self.move_right_sprites.append(pygame.transform.scale(pygame.image.load("./assets/boy/Run (3).png"),(64,64)))
@@ -55,6 +56,24 @@ class Player(pygame.sprite.Sprite):
         self.move_right_sprites.append(pygame.transform.scale(pygame.image.load("./assets/boy/Run (6).png"),(64,64)))
         self.move_right_sprites.append(pygame.transform.scale(pygame.image.load("./assets/boy/Run (7).png"),(64,64)))
         self.move_right_sprites.append(pygame.transform.scale(pygame.image.load("./assets/boy/Run (8).png"),(64,64)))
+
+        # transform move right to animate moving left
+        for sprite in self.move_right_sprites:
+            self.move_left_sprites.append(pygame.transform.flip(sprite, True, False))
+
+        # animate idle right
+        self.idle_right_sprites.append(pygame.transform.scale(pygame.image.load("./assets/boy/Idle (1).png"), (64,64)))
+        self.idle_right_sprites.append(pygame.transform.scale(pygame.image.load("./assets/boy/Idle (2).png"), (64,64)))
+        self.idle_right_sprites.append(pygame.transform.scale(pygame.image.load("./assets/boy/Idle (3).png"), (64,64)))
+        self.idle_right_sprites.append(pygame.transform.scale(pygame.image.load("./assets/boy/Idle (4).png"), (64,64)))
+        self.idle_right_sprites.append(pygame.transform.scale(pygame.image.load("./assets/boy/Idle (5).png"), (64,64)))
+        self.idle_right_sprites.append(pygame.transform.scale(pygame.image.load("./assets/boy/Idle (6).png"), (64,64)))
+        self.idle_right_sprites.append(pygame.transform.scale(pygame.image.load("./assets/boy/Idle (7).png"), (64,64)))
+        self.idle_right_sprites.append(pygame.transform.scale(pygame.image.load("./assets/boy/Idle (8).png"), (64,64)))
+
+        # transforming idle right to idle left animation
+        for sprite in self.idle_right_sprites:
+            self.idle_left_sprites.append(pygame.transform.flip(sprite,True,False))
 
         self.current_sprite = 0
 
@@ -74,7 +93,7 @@ class Player(pygame.sprite.Sprite):
         self.acceleration = vector(0,0)
         
         # some kinemtatic constants to make moving better
-        self.HORIZONTAL_ACCELERATION = 2
+        self.HORIZONTAL_ACCELERATION = 1
         self.HORIZONTAL_FRICTION = 0.15
         self.VERTICAL_ACCELERATION = 0.5 # this is gravity
         self.VERTICAL_JUMP_SPEED = 15
@@ -92,10 +111,17 @@ class Player(pygame.sprite.Sprite):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT]:
             self.acceleration.x = -1 * self.HORIZONTAL_ACCELERATION
-        if keys[pygame.K_RIGHT]:
+            self.animate(self.move_left_sprites, .2)
+        elif keys[pygame.K_RIGHT]:
             self.acceleration.x = self.HORIZONTAL_ACCELERATION
-            self.animate(self.move_right_sprites)
-        
+            self.animate(self.move_right_sprites, .2)
+        else:
+            if self.velocity.x >0:
+                self.animate(self.idle_right_sprites, .2)
+            else:
+                self.animate(self.idle_left_sprites, .2)
+
+                
         # calculate new kinematics values 
         self.acceleration.x -= self.velocity.x * self.HORIZONTAL_FRICTION
         self.velocity += self.acceleration
@@ -131,13 +157,13 @@ class Player(pygame.sprite.Sprite):
             self.velocity.y = -1 * self.VERTICAL_JUMP_SPEED
 
 
-    def animate(self, sprite_list):
+    def animate(self, sprite_list, speed):
         """animate the player image"""
         if self.current_sprite < len(sprite_list) -1:
-            self.current_sprite += 1
+            self.current_sprite += speed
         else:
             self.current_sprite = 0
-        self.image = sprite_list[self.current_sprite]
+        self.image = sprite_list[int(self.current_sprite)]
 
 
 # create sprite groups
@@ -203,8 +229,6 @@ while is_running:
         elif event.type == pygame.KEYDOWN: # why the hell here not in player?
             if event.key == pygame.K_SPACE:
                 my_player.jump()  
-                print(my_player.starting_x)
-                print(my_player.starting_y)
 
     #fill the display 
     # display_surface.fill((10, 75, 75))

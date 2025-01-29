@@ -24,6 +24,7 @@ class Tile(pygame.sprite.Sprite):
             self.image = pygame.image.load('./assets/dirt.png')
         elif image_int == 2:
             self.image = pygame.image.load('./assets/grass.png')
+            self.mask = pygame.mask.from_surface(self.image)
             sub_group.add(self)
         elif image_int == 3:
             self.image = pygame.image.load('./assets/water.png')
@@ -38,7 +39,8 @@ class Tile(pygame.sprite.Sprite):
 
     def update(self):
         # draw a rectangle of a tile with blue line
-        pygame.draw.rect(display_surface, (0,0,255), self.rect, 1)
+        # pygame.draw.rect(display_surface, (0,0,255), self.rect, 1)
+        pass
 
 class Player(pygame.sprite.Sprite):
     """ a class to hold players object"""
@@ -109,10 +111,11 @@ class Player(pygame.sprite.Sprite):
         # create a mask around player for better collision detection
         self.mask = pygame.mask.from_surface(self.image)
         mask_outline = self.mask.outline()
-        pygame.draw.lines(self.image, (255,255,0), True, mask_outline)
+        # pygame.draw.lines(self.image, (255,255,0), True, mask_outline)
 
         self.move()
         self.check_collisions()
+        print("i am at : " + str(self.rect.x) + " " + str(self.rect.y))
 
 
     def move(self):

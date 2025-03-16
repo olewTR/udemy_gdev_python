@@ -94,11 +94,32 @@ class Player(pygame.sprite.Sprite):
 
 class Tile(pygame.sprite.Sprite):
     """a class to represent the tile elements"""
-    def __init__(self):
+    def __init__(self, x, y, image_int, main_group, sub_group=""):
         """initialize class"""
         super().__init__()
-        pass
+        # load appropriate images by looking up the image_int
+        if image_int == 1:
+            self.image = pygame.transform.scale(pygame.image.load('images/tiles/Tile (1).png'),(32,32))
+        # platform tiles
+        elif image_int == 2:
+            self.image = pygame.transform.scale(pygame.image.load('images/tiles/Tile (2).png'),(32,32))
+            sub_group.add(self)
+        elif image_int == 3:
+            self.image = pygame.transform.scale(pygame.image.load('images/tiles/Tile (3).png'), (32,32))
+            sub_group.add(self)
+        elif image_int == 4:
+            self.image = pygame.transform.scale(pygame.image.load('images/tiles/Tile (4).png'), (32,32))
+            sub_group.add(self)
+        elif image_int == 5:
+            self.image = pygame.transform.scale(pygame.image.load('images/tiles/Tile (5).png'), (32,32))
+            sub_group.add(self)
 
+        # evey tile needs to be added to main tile group
+        main_group.add(self)
+
+        # setting the rect
+        self.rect = self.image.get_rect()
+        self.rect.topleft=(x, y)
 
 class Bullet(pygame.sprite.Sprite):
     """a projectile created by player"""
@@ -178,6 +199,77 @@ class Portal(pygame.sprite.Sprite):
         """animate the object"""
         pass
 
+# create sprite groups  
+my_main_tile_group = pygame.sprite.Group()  # all tiles in this group
+my_platform_group = pygame.sprite.Group() # only platform tiles
+my_player_group = pygame.sprite.Group() # player group
+my_bullet_group = pygame.sprite.Group() # the slashes from the sword 
+my_zombie_group = pygame.sprite.Group() # zombie group
+my_portal_group = pygame.sprite.Group() # portals group
+my_ruby_group = pygame.sprite.Group() # ruby group
+
+# create the tile map here
+# 0 => no tile
+# 1 => dirt tile
+# 2-5 => platforms
+# 6 => ruby maker
+# 7,8 => platform
+# 9 => player
+# tile map is 40 x 23 (tiles)
+tile_map = [
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [4,4,4,4,4,4,4,4,4,4,4,4,4,4,5,0,0,0,0,0,0,0,0,0,0,3,4,4,4,4,4,4,4,4,4,4,4,4,4,4],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,3,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,5,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [4,4,4,4,4,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,4,4,4,4,4],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,5,0,0,0,0,0,0,0,0,3,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,4,4,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+]
+# generate tile map from the list of lists
+# loop through the 23 lists (i moves down, j moves right)
+for i in range(len(tile_map)):
+    for j in range(len(tile_map[i])):
+        # for 0 do nothing, for 1 - dirt
+        if tile_map[i][j]== 1:
+            Tile(j*32, i*32, 1, my_main_tile_group)
+        # for platform tiles 2-5
+        elif tile_map[i][j]==2:
+            Tile(j*32,i*32, 2, my_main_tile_group, my_platform_group)
+        elif tile_map[i][j]==3:
+            Tile(j*32,i*32, 3, my_main_tile_group, my_platform_group)
+        elif tile_map[i][j]==4:
+            Tile(j*32,i*32, 4, my_main_tile_group, my_platform_group)
+        elif tile_map[i][j]==5:
+            Tile(j*32,i*32, 5, my_main_tile_group, my_platform_group)
+        # ruby maker
+        elif tile_map[i][j]==6:
+            pass # not ready - will it be : Tile(i*32, j*32, 6, my_main_tile_group, my_platform_group) ?
+        # portals
+        elif tile_map[i][j]==7:
+            pass # not ready yet
+        elif tile_map[i][j]==8:
+            pass # not ready yet
+        # player
+        elif tile_map[i][j]==9:
+            pass # not ready yet
+
+
 # main game loop here
 running = True
 
@@ -186,7 +278,12 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
+    # blit the background
     display_surface.blit(background_image, background_rect)
+
+    # blit the tiles
+    my_main_tile_group.draw(display_surface)
+
     pygame.display.update()
     clock.tick(FPS)
 

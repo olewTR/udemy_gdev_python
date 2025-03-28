@@ -156,18 +156,44 @@ class Zombie(pygame.sprite.Sprite):
 
 class RubyMaker(pygame.sprite.Sprite):
     """a tile that is animated - a ruby is generated here"""
-    def __init__(self):
+    def __init__(self, x, y, main_group):
         """init the class"""
         super().__init__()
         """init also the superclass"""
-        pass
+        
+        # animation frames
+        self.ruby_sprites = []
+
+        # rotating
+        self.ruby_sprites.append(pygame.transform.scale(pygame.image.load('./images/ruby/tile000.png'), (64,64)))
+        self.ruby_sprites.append(pygame.transform.scale(pygame.image.load('./images/ruby/tile001.png'), (64,64)))
+        self.ruby_sprites.append(pygame.transform.scale(pygame.image.load('./images/ruby/tile002.png'), (64,64)))
+        self.ruby_sprites.append(pygame.transform.scale(pygame.image.load('./images/ruby/tile003.png'), (64,64)))
+        self.ruby_sprites.append(pygame.transform.scale(pygame.image.load('./images/ruby/tile004.png'), (64,64)))
+        self.ruby_sprites.append(pygame.transform.scale(pygame.image.load('./images/ruby/tile005.png'), (64,64)))
+        self.ruby_sprites.append(pygame.transform.scale(pygame.image.load('./images/ruby/tile006.png'), (64,64)))
+
+        # load image and get rect
+        self.current_sprite = 0
+        self.image = self.ruby_sprites[self.current_sprite]
+        self.rect = self.image.get_rect()
+        self.rect.bottomleft = (x,y)
+
+        # add to the main group for the drawing purposes
+        main_group.add(self)
+
     def update(self):
         """update the ruby maker"""
-        pass
-    def animate(self):
-        """do the ruby animation"""
-        pass
+        self.animate(self.ruby_sprites, 0.25)
 
+    def animate(self, sprite_list, speed):
+        """do the ruby animation"""
+        if self.current_sprite < len(sprite_list) -1:
+            self.current_sprite += speed
+        else:
+            self.current_sprite = 0
+
+        self.image = sprite_list[int(self.current_sprite)]
 
 class Ruby(pygame.sprite.Sprite):
     """class for ruby object that is needed to get more health etc"""
@@ -220,7 +246,7 @@ tile_map = [
     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    [4,4,4,4,4,4,4,4,4,4,4,4,4,4,5,0,0,0,0,0,0,0,0,0,0,3,4,4,4,4,4,4,4,4,4,4,4,4,4,4],
+    [4,4,4,4,4,4,4,4,4,4,4,4,4,4,5,0,0,0,0,6,0,0,0,0,0,3,4,4,4,4,4,4,4,4,4,4,4,4,4,4],
     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -259,7 +285,7 @@ for i in range(len(tile_map)):
             Tile(j*32,i*32, 5, my_main_tile_group, my_platform_group)
         # ruby maker
         elif tile_map[i][j]==6:
-            pass # not ready - will it be : Tile(i*32, j*32, 6, my_main_tile_group, my_platform_group) ?
+            RubyMaker(j*32, i*32, my_main_tile_group)
         # portals
         elif tile_map[i][j]==7:
             pass # not ready yet
@@ -282,6 +308,7 @@ while running:
     display_surface.blit(background_image, background_rect)
 
     # blit the tiles
+    my_main_tile_group.update()
     my_main_tile_group.draw(display_surface)
 
     pygame.display.update()

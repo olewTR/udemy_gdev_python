@@ -105,14 +105,14 @@ class Game():
 
 class Player(pygame.sprite.Sprite):
     """a class to represent player object"""
-    def __init__(self, x, y, player_group, portal_group, bullet_group):
+    def __init__(self, x, y, platform_group, portal_group, bullet_group):
         """initialize class"""
         super().__init__()
         
         # set constants 
         self.HORIZONTAL_ACCELERATION = 2
         self.HORIZONTAL_FRICTION = 0.15
-        self.VERTICAL_ACCELERATION = 0.0  # gravity
+        self.VERTICAL_ACCELERATION = 0.8  # gravity
         self.VERTICAL_JUMP_SPEED = 18  # how high the player jump
         self.STARTING_HEALTH = 100
 
@@ -193,7 +193,7 @@ class Player(pygame.sprite.Sprite):
         self.rect.bottomleft = (x, y)
 
         # attach sprite groups 
-        self.player_group = player_group  # or will it be platform grup rather?
+        self.platform_group = platform_group  # or will it be platform grup rather?
         self.portal_group = portal_group
         self.bullet_group = bullet_group
 
@@ -251,13 +251,50 @@ class Player(pygame.sprite.Sprite):
 
     def check_collisions(self):
         """check for collisions with platform and portals"""
-        pass
+        # collision check between player and platforms for falling
+        if self.velocity.y > 0:
+            collided_platforms = pygame.sprite.spritecollide(self, self.platform_group, False)
+            if collided_platforms:
+                self.position.y = collided_platforms[0].rect.top + 1
+                self.velocity.y = 0
+
+        # collision check between player and platform when jumping up
+        if self.velocity.y < 0:
+            collided_platforms = pygame.sprite.spritecollide(self, self.platform_group, False)
+            if collided_platforms:
+                self.velocity.y = 0
+                while pygame.sprite.spritecollide(self, self.platform_group, False):
+                    self.position.y += 1
+                    self.rect.bottomleft = self.position
+
+        # collistion check with portals
+        if pygame.sprite.spritecollide(self, self.portal_group, False):
+            self.portal_sound.play()
+            # determine which portal are you moving to
+            # left and right
+            if self.position.x > WINDOW_WIDTH //2:
+                self.position.x = 86 # hardcoded position to go to
+            else:
+                self.position.x = WINDOW_WIDTH - 150
+            # top and bottom
+            if self.position.y > WINDOW_HEIGHT//2:
+                self.position.y = 64
+            else:
+                self.position.y = WINDOW_HEIGHT - 132
+
+            self.rect.bottomleft = self.position
+
+
     def check_animations(self):
         """check if animations should be made"""
         pass
     def jump(self):
         """jump your player if on a platform"""
-        pass
+        # only jump if on platform
+        if pygame.sprite.spritecollide(self, self.platform_group, False):
+            self.jump_sound.play()
+            self.velocity.y = -1 * self.VERTICAL_JUMP_SPEED
+        
     def fire(self):
         """fire your guns"""
         pass
@@ -549,6 +586,10 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        if event.type == pygame.KEYDOWN:
+            # jump 
+            if event.key == pygame.K_SPACE:
+                my_player.jump()
 
     # blit the background
     display_surface.blit(background_image, background_rect)

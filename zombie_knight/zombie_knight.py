@@ -67,7 +67,7 @@ class Game():
         score_text = self.hud_font.render('Score: ' + str(self.score), True, WHITE)
         score_rect = score_text.get_rect()
         score_rect.topleft = (10, WINDOW_HEIGHT - 50)
-        health_text = self.hud_font.render('Health: ' + str('100 for now'), True, WHITE)
+        health_text = self.hud_font.render('Health: ' + str(self.player.health), True, WHITE)
         health_rect = health_text.get_rect()
         health_rect.topleft = (10, WINDOW_HEIGHT - 25)
         title_text = self.title_font.render('Zombie knight', True, GREEN)
@@ -101,6 +101,24 @@ class Game():
                     zombie.hit_sound.play()
                     zombie.is_dead = True
                     zombie.animate_death = True
+
+        # see if player stomped a zombie or a zombie bite and done damage
+        collision_list = pygame.sprite.spritecollide(self.player, self.zombie_group, False)
+        if collision_list:
+            for zombie in collision_list:
+                # is zombie dead?
+                if zombie.is_dead == True:
+                    zombie.kick_sound.play()
+                    zombie.kill()
+                    self.score += 25
+                else:
+                    self.player.health -= 20
+                    self.player.hit_sound.play()
+                    # move the player to not take continous damage
+                    self.player.position.x -= 256 * zombie.direction
+                    self.player.rect.bottomleft = self.player.position
+
+        
 
     def check_round_completion(self):
         """check if player survived night"""
@@ -566,6 +584,17 @@ class Zombie(pygame.sprite.Sprite):
         self.move()
         self.check_collisions()
         self.check_animations()
+
+        # determine when zombie rise from dead
+        if self.is_dead:
+            self.frame_count += 1
+            if self.frame_count % FPS == 0:
+                self.round_time += 1
+                if self.round_time == self.RISE_TIME:
+                    self.animate_rise = True
+                    # when the zombie died, the image was kept as last image
+                    # when it rises, we want to start at index 0 of rise_sprite collection
+                    self.current_sprite = 0
         
     def move(self):
         """move the zombie"""
@@ -623,6 +652,12 @@ class Zombie(pygame.sprite.Sprite):
             else:
                 self.animate(self.die_left_sprites, 0.095)
 
+        # animate zombie rise
+        if self.animate_rise:
+            if self.direction == 1:
+                self.animate(self.rise_right_sprites, 0.095)
+            else: 
+                self.animate(self.rise_left_sprites, 0.095)
 
     def animate(self, sprite_list, speed):
         """animate the zombie object"""
@@ -634,7 +669,14 @@ class Zombie(pygame.sprite.Sprite):
             if self.animate_death:
                 self.current_sprite = len(sprite_list) - 1
                 self.animate_death = False  
-
+            
+            # end the rise animation
+            if self.animate_rise:
+                self.animate_rise = False
+                self.is_dead = False
+                self.frame_count = 0
+                self.round_time = 0
+                
 
         self.image = sprite_list[int(self.current_sprite)]
 

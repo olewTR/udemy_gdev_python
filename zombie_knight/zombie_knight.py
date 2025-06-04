@@ -100,7 +100,7 @@ class Game():
             if self.round_time % self.zombie_creation_time == 0:
                 zombie = Zombie(self.platform_group, self.portal_group, self.round_number, self.round_number + 5)
                 self.zombie_group.add(zombie)
-                
+
 
     def check_collisions(self):
         """check for collisions"""
@@ -122,6 +122,10 @@ class Game():
                     zombie.kick_sound.play()
                     zombie.kill()
                     self.score += 25
+
+                    ruby = Ruby(self.platform_group, self.portal_group)
+                    self.ruby_group.add(ruby)
+
                 else:
                     self.player.health -= 20
                     self.player.hit_sound.play()
@@ -148,7 +152,6 @@ class Game():
 
     def reset_game(self):
         pass
-
 
 class Player(pygame.sprite.Sprite):
     """a class to represent player object"""
@@ -734,21 +737,96 @@ class RubyMaker(pygame.sprite.Sprite):
 
 class Ruby(pygame.sprite.Sprite):
     """class for ruby object that is needed to get more health etc"""
-    def __init__(self):
+    def __init__(self, platform_group, portal_group):
         super().__init__()
-        pass
+        # constants for ruby
+        self.VERTICAL_ACCELERATION = 3 # gravity
+        self.HORIZONTAL_VELOCITY = 5
+
+        # animation framses
+        self.ruby_sprites = []
+
+        # rotating (same as in ruby maker)
+        self.ruby_sprites.append(pygame.transform.scale(pygame.image.load('./assets/images/ruby/tile000.png'), (64,64)))
+        self.ruby_sprites.append(pygame.transform.scale(pygame.image.load('./assets/images/ruby/tile001.png'), (64,64)))
+        self.ruby_sprites.append(pygame.transform.scale(pygame.image.load('./assets/images/ruby/tile002.png'), (64,64)))
+        self.ruby_sprites.append(pygame.transform.scale(pygame.image.load('./assets/images/ruby/tile003.png'), (64,64)))
+        self.ruby_sprites.append(pygame.transform.scale(pygame.image.load('./assets/images/ruby/tile004.png'), (64,64)))
+        self.ruby_sprites.append(pygame.transform.scale(pygame.image.load('./assets/images/ruby/tile005.png'), (64,64)))
+        self.ruby_sprites.append(pygame.transform.scale(pygame.image.load('./assets/images/ruby/tile006.png'), (64,64)))
+
+        # load image and get rect
+        self.current_sprite = 0
+        self.image = self.ruby_sprites[self.current_sprite]
+        self.rect = self.image.get_rect()
+        self.rect.bottomleft = (WINDOW_WIDTH //2 , 100)
+
+        # attach sprite groups
+        self.platform_group = platform_group
+        self.portal_group = portal_group
+
+        # load sounds
+        self.portal_sound = pygame.mixer.Sound('./assets/sounds/portal_sound.wav')
+
+        # kinematic vectors to move
+        self.position = vector(self.rect.x, self.rect.y)
+        self.velocity = vector(random.choice([-1*self.HORIZONTAL_VELOCITY, self.HORIZONTAL_VELOCITY]),0)
+        self.acceleration = vector(0, self.VERTICAL_ACCELERATION)
+
     def update(self):
         """update the ruby object"""
-        pass
+        self.animate(self.ruby_sprites, 0.25)
+        self.move()
+        self.check_collisions()
+
     def check_collisions(self):
         """check for collsions with platforms and portals"""
-        pass
+        # collision check between rubys and platforms / zombies / player
+        collided_platforms = pygame.sprite.spritecollide(self, self.platform_group, False)
+        if collided_platforms:
+            self.position.y = collided_platforms[0].rect.top + 1
+            self.velocity.y = 0
+        
+                # collistion check with portals
+        if pygame.sprite.spritecollide(self, self.portal_group, False):
+            self.portal_sound.play()
+            # determine which portal zobmie will move to
+            # left and right
+            if self.position.x > WINDOW_WIDTH//2:
+                self.position.x = 86
+            else:
+                self.position.x = WINDOW_WIDTH - 150
+
+            # top and bottom
+            if self.position.y > WINDOW_HEIGHT //2:
+                self.position.y = 64
+            else: 
+                self.position.y = WINDOW_HEIGHT - 132
+
+            self.rect.bottomleft = self.position
+
     def move(self):
         """move the ruby"""
-        pass
-    def animat(self):
+        # we dont need to update acceleration vector, it never changes
+        self.velocity += self.acceleration
+        self.position += self.velocity + 0.5 * self.acceleration
+
+        # when it reaches the screen edge:
+        if self.position.x < 0:
+            self.position.x = WINDOW_WIDTH
+        elif self.position.x > WINDOW_WIDTH:
+            self.position.x = 0
+
+        self.rect.bottomleft = self.position
+
+    def animate(self, sprite_list, speed):
         """animate the ruby object"""
-        pass
+        if self.current_sprite < len(sprite_list) -1:
+            self.current_sprite += speed
+        else:
+            self.current_sprite = 0
+
+        self.image = sprite_list[int(self.current_sprite)]
 
 class Portal(pygame.sprite.Sprite):
     """class for portal object"""
@@ -939,6 +1017,9 @@ while running:
 
     my_zombie_group.update()
     my_zombie_group.draw(display_surface)
+
+    my_ruby_group.update()
+    my_ruby_group.draw(display_surface)
 
     my_game.update()
     my_game.draw()

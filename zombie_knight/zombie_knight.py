@@ -35,8 +35,14 @@ class Game():
         self.round_time = self.STARTING_ROUND_TIME
         self.zombie_creation_time = self.STARTING_ZOMBIE_CREATION_TIME
 
+        # set fonts
         self.title_font = pygame.font.Font('./assets/fonts/Poultrygeist.ttf', 48)
         self.hud_font = pygame.font.Font('./assets/fonts/Pixel.ttf', 24)
+
+        # load sounds
+        self.lost_ruby_sound = pygame.mixer.Sound('./assets/sounds/lost_ruby.wav')
+        self.ruby_pickup_sound = pygame.mixer.Sound('./assets/sounds/ruby_pickup.wav')
+        pygame.mixer.music.load('./assets/sounds/level_music.wav')
 
         # attach groups and sprites
         self.player = player
@@ -101,7 +107,6 @@ class Game():
                 zombie = Zombie(self.platform_group, self.portal_group, self.round_number, self.round_number + 5)
                 self.zombie_group.add(zombie)
 
-
     def check_collisions(self):
         """check for collisions"""
         # see if any bullet hit a zombie
@@ -133,7 +138,21 @@ class Game():
                     self.player.position.x -= 256 * zombie.direction
                     self.player.rect.bottomleft = self.player.position
 
+        # see if a player collided with ruby
+        if pygame.sprite.spritecollide(self.player, self.ruby_group, True):
+            self.ruby_pickup_sound.play()
+            self.score += 100
+            self.player.health += 10
+            if self.player.health > self.player.STARTING_HEALTH:
+                self.player.health = self.player.STARTING_HEALTH
         
+        # see if a living zombie collides with ruby
+        for zombie in self.zombie_group:
+            if zombie.is_dead == False:
+                if pygame.sprite.spritecollide(zombie, self.ruby_group, True):
+                    self.lost_ruby_sound.play()
+                    zombie = Zombie(self.platform_group, self.portal_group, self.round_number, 5 + self.round_number)
+                    self.zombie_group.add(zombie)
 
     def check_round_completion(self):
         """check if player survived night"""

@@ -70,6 +70,9 @@ class Game():
         # check round completion
         self.check_round_completion()
 
+        # check if game is over
+        self.check_gameover()
+
     def draw(self):
         """drawing elements"""
         
@@ -164,7 +167,10 @@ class Game():
 
     def check_gameover(self):
         """check to see if player lost the game"""
-        pass
+        if self.player.health <= 0:
+            pygame.mixer.music.stop()
+            self.pause_game('Game Over', 'Final score: ' + str(self.score) + 'Press enter to continue')
+            self.reset_game()
 
     def start_new_round(self):
         """starts new night"""
@@ -181,7 +187,6 @@ class Game():
 
         self.player.reset()
         self.pause_game('You survived the night', 'Press Enter to continue...')
-
     
     def pause_game(self, main_text, sub_text):
         global running
@@ -222,9 +227,24 @@ class Game():
                     running = False
                     pygame.mixer_music.stop()
 
-
     def reset_game(self):
-        pass
+        
+        # reset game values
+        self.score = 0
+        self.round_number = 1
+        self.round_time = self.STARTING_ROUND_TIME
+        self.zombie_creation_time = self.STARTING_ZOMBIE_CREATION_TIME
+
+        # reset player
+        self.player.health = self.player.STARTING_HEALTH
+        self.player.reset()
+
+        # empty sprite groups
+        self.zombie_group.empty()
+        self.bullet_group.empty()
+        self.ruby_group.empty()
+
+        pygame.mixer.music.play(-1, 0.0)
 
 class Player(pygame.sprite.Sprite):
     """a class to represent player object"""
@@ -340,12 +360,14 @@ class Player(pygame.sprite.Sprite):
         self.starting_x = x
         self.starting_y = y
 
-
     def update(self):
         """update the player"""
         self.move()
         self.check_collisions()
         self.check_animations()
+
+        # setup player object mask for better collision
+        self.mask = pygame.mask.from_surface(self.image)
 
     def move(self):
         """move the player"""
@@ -383,14 +405,14 @@ class Player(pygame.sprite.Sprite):
         """check for collisions with platform and portals"""
         # collision check between player and platforms for falling
         if self.velocity.y > 0:
-            collided_platforms = pygame.sprite.spritecollide(self, self.platform_group, False)
+            collided_platforms = pygame.sprite.spritecollide(self, self.platform_group, False, pygame.sprite.collide_mask)
             if collided_platforms:
-                self.position.y = collided_platforms[0].rect.top + 1
+                self.position.y = collided_platforms[0].rect.top + 5 # THE 5 is to "stick" player to the platform
                 self.velocity.y = 0
 
         # collision check between player and platform when jumping up
         if self.velocity.y < 0:
-            collided_platforms = pygame.sprite.spritecollide(self, self.platform_group, False)
+            collided_platforms = pygame.sprite.spritecollide(self, self.platform_group, False, pygame.sprite.collide_mask)
             if collided_platforms:
                 self.velocity.y = 0
                 while pygame.sprite.spritecollide(self, self.platform_group, False):
@@ -413,7 +435,6 @@ class Player(pygame.sprite.Sprite):
                 self.position.y = WINDOW_HEIGHT - 132
 
             self.rect.bottomleft = self.position
-
 
     def check_animations(self):
         """check if animations should be made"""
@@ -446,6 +467,7 @@ class Player(pygame.sprite.Sprite):
 
     def reset(self):
         """reset your player state"""
+        self.velocity = vector(0,0)
         self.position = vector(self.starting_x, self.starting_y)
         self.rect.bottomleft = self.position
 
@@ -492,6 +514,9 @@ class Tile(pygame.sprite.Sprite):
         # setting the rect
         self.rect = self.image.get_rect()
         self.rect.topleft=(x, y)
+
+        # set up the sprite mask
+        self.mask = pygame.mask.from_surface(self.image)
 
 class Bullet(pygame.sprite.Sprite):
     """a projectile created by player"""
